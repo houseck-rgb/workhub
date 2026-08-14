@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>하루장</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="하루장">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ffffff;
+    --paper-2:#f7f5f0;
+    --ink:#3a362f;
+    --ink-soft:#9a9384;
+    --rule:#e9e3d5;
+    --seal:#c2483d;
+    --seal-dark:#96332b;
+    --amber:#c78a3d;
+    --gold:#cda86f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at top left, rgba(205,168,111,0.05), transparent 55%),
+      var(--paper);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Noto Sans KR',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      repeating-linear-gradient(transparent, transparent 27px, rgba(74,69,60,0.02) 28px);
+    pointer-events:none;
+    z-index:0;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    position:relative;
+    z-index:1;
+    padding:18px 16px 100px;
+  }
+
+  /* ---- Header ---- */
+  .app-header{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:2.5px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:14px;
+  }
+  .app-title{
+    font-family:'Noto Serif KR',serif;
+    font-weight:900;
+    font-size:26px;
+    letter-spacing:1px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .app-title .seal-mini{
+    width:20px;height:20px;border-radius:3px;
+    background:var(--seal);
+    color:#f4ead9;
+    font-size:11px; font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif KR',serif;
+    transform:rotate(-6deg);
+    box-shadow:0 1px 2px rgba(0,0,0,0.3);
+  }
+  .app-sub{font-size:11px;color:var(--ink-soft);letter-spacing:2px;}
+  .view-toggle{
+    display:flex; gap:6px;
+  }
+  .view-toggle button{
+    border:1.5px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    font-family:'Noto Sans KR',sans-serif;
+    font-size:12px; font-weight:700;
+    padding:6px 10px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .view-toggle button.active{
+    background:var(--ink); color:var(--paper);
+  }
+
+  /* ---- Install banner ---- */
+  .install-banner{
+    display:flex; align-items:center; gap:10px;
+    background:var(--paper-2);
+    border:1px solid var(--gold);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .install-banner .install-glyph{
+    flex:0 0 auto;
+    width:26px;height:26px;border-radius:6px;
+    background:var(--seal);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif KR',serif;
+    font-size:13px; font-weight:700;
+    transform:rotate(-4deg);
+  }
+  .install-banner .install-msg{ flex:1; min-width:0; }
+  .install-actions{ display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+  #installBtn{
+    border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+    font-size:12px; font-weight:700; padding:6px 12px; border-radius:5px; cursor:pointer;
+    white-space:nowrap;
+  }
+  #installClose{
+    border:none; background:none; color:var(--ink-soft);
+    font-size:14px; cursor:pointer; padding:4px;
+  }
+
+  /* ---- Day nav ---- */
+  .day-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .nav-btn{
+    background:none;border:none;color:var(--ink);
+    font-size:22px; padding:6px 10px; cursor:pointer;
+    font-family:'Noto Serif KR',serif;
+    line-height:1;
+  }
+  .date-block{ text-align:center; flex:1; }
+  .date-block .big-date{
+    font-family:'Noto Serif KR',serif;
+    font-weight:700;
+    font-size:21px;
+  }
+  .date-block .dow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:2px;
+  }
+  .today-jump{
+    text-align:center; margin-bottom:14px;
+  }
+  .today-jump button{
+    background:none;border:1px solid var(--gold); color:var(--amber);
+    font-size:11px; padding:3px 10px; border-radius:20px; cursor:pointer;
+  }
+
+  /* ---- Task ledger ---- */
+  .ledger{
+    background:rgba(255,252,244,0.35);
+    border:1px solid var(--rule);
+    border-radius:2px;
+    min-height:140px;
+  }
+  .task-row{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px 12px;
+    border-bottom:1px solid var(--rule);
+    position:relative;
+  }
+  .task-row:last-child{border-bottom:none;}
+  .stamp-btn{
+    flex:0 0 auto;
+    width:30px; height:30px;
+    margin-top:1px;
+    border-radius:50% 48% 50% 47% / 47% 50% 48% 50%;
+    border:2px solid var(--ink-soft);
+    background:transparent;
+    cursor:pointer;
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s ease;
+  }
+  .stamp-btn.done{
+    border-color:var(--seal);
+    background:var(--seal);
+    animation:stamp-in .28s cubic-bezier(.3,1.4,.5,1);
+  }
+  @keyframes stamp-in{
+    0%{ transform:scale(1.6) rotate(-18deg); opacity:0; }
+    60%{ transform:scale(0.92) rotate(4deg); opacity:1; }
+    100%{ transform:scale(1) rotate(-4deg); opacity:1; }
+  }
+  .stamp-btn.done{ transform:rotate(-4deg); }
+  .stamp-btn.done::after{
+    content:"完";
+    color:#f4ead9;
+    font-family:'Noto Serif KR',serif;
+    font-size:14px;
+    font-weight:700;
+  }
+  .task-text-wrap{ flex:1; min-width:0; padding-top:3px; }
+  .task-text{
+    font-size:15px; line-height:1.4;
+    word-break:break-word;
+  }
+  .task-row.done .task-text{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+    text-decoration-color:var(--seal);
+    text-decoration-thickness:1.5px;
+  }
+  .task-meta{
+    display:flex; gap:6px; align-items:center;
+    margin-top:4px;
+  }
+  .carry-tag{
+    font-size:10px; color:var(--amber);
+    border:1px solid var(--gold);
+    border-radius:20px;
+    padding:1px 7px;
+    font-family:'JetBrains Mono',monospace;
+    white-space:nowrap;
+  }
+  .del-btn{
+    flex:0 0 auto;
+    background:none;border:none;
+    color:var(--ink-soft);
+    font-size:16px; cursor:pointer;
+    padding:2px 4px;
+    opacity:0.55;
+  }
+  .empty-state{
+    padding:38px 20px; text-align:center;
+    color:var(--ink-soft);
+    font-size:13px; line-height:1.7;
+  }
+  .empty-state .glyph{
+    font-family:'Noto Serif KR',serif;
+    font-size:28px; display:block; margin-bottom:6px;
+    color:var(--rule);
+  }
+
+  /* ---- Add task ---- */
+  .add-bar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    display:flex; justify-content:center;
+    background:linear-gradient(transparent, var(--paper) 30%);
+    padding:14px 16px 18px;
+    z-index:5;
+  }
+  .add-bar-inner{
+    width:100%; max-width:480px - 32px;
+    max-width:448px;
+    display:flex; gap:8px;
+    background:var(--paper-2);
+    border:1.5px solid var(--ink);
+    border-radius:6px;
+    padding:6px 6px 6px 14px;
+    box-shadow:0 3px 10px rgba(43,42,38,0.15);
+  }
+  #taskInput{
+    flex:1; border:none; background:transparent;
+    font-family:'Noto Sans KR',sans-serif;
+    font-size:15px; color:var(--ink);
+    padding:8px 0;
+    outline:none;
+  }
+  #taskInput::placeholder{ color:#9c9484; }
+  #addBtn{
+    border:none; background:var(--ink); color:var(--paper);
+    font-size:13px; font-weight:700;
+    padding:0 16px; border-radius:4px; cursor:pointer;
+  }
+
+  /* ---- Month view ---- */
+  .month-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .month-title{
+    font-family:'Noto Serif KR',serif; font-weight:700; font-size:19px;
+  }
+  .cal-grid{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .cal-dow{
+    text-align:center; font-size:10px; color:var(--ink-soft);
+    padding-bottom:6px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .cal-cell{
+    aspect-ratio:1;
+    border:1px solid var(--rule);
+    border-radius:3px;
+    background:rgba(255,252,244,0.3);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer;
+    position:relative;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+  }
+  .cal-cell.blank{ border:none; background:none; cursor:default; }
+  .cal-cell.today{ border:1.5px solid var(--ink); font-weight:700; }
+  .cal-cell .dot{
+    width:6px; height:6px; border-radius:50%;
+    margin-top:3px;
+  }
+  .dot.amber{ background:var(--amber); }
+  .dot.seal{ background:var(--seal); }
+  .month-hint{
+    margin-top:16px; font-size:11px; color:var(--ink-soft); text-align:center;
+    line-height:1.8;
+  }
+  .month-hint .dot{
+    display:inline-block; width:6px;height:6px;border-radius:50%;
+    margin:0 4px -1px 0;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="app-header">
+    <div>
+      <div class="app-title"><span class="seal-mini">完</span>하루장</div>
+      <div class="app-sub">매일의 기록</div>
+    </div>
+    <div class="view-toggle">
+      <button id="btnDayView" class="active">일간</button>
+      <button id="btnMonthView">월간</button>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner" style="display:none;">
+    <div class="install-glyph">完</div>
+    <div class="install-msg" id="installMsg">앱처럼 설치해서 바로가기로 더 빠르게 열어보세요.</div>
+    <div class="install-actions">
+      <button id="installBtn" style="display:none;">설치</button>
+      <button id="installClose" aria-label="닫기">✕</button>
+    </div>
+  </div>
+
+  <div id="dayView">
+    <div class="day-nav">
+      <button class="nav-btn" id="prevDay">‹</button>
+      <div class="date-block">
+        <div class="big-date" id="bigDate">-</div>
+        <div class="dow" id="dowLabel">-</div>
+      </div>
+      <button class="nav-btn" id="nextDay">›</button>
+    </div>
+    <div class="today-jump" id="todayJumpWrap" style="display:none;">
+      <button id="todayJump">오늘로 이동</button>
+    </div>
+
+    <div class="ledger" id="ledger"></div>
+  </div>
+
+  <div id="monthView" style="display:none;">
+    <div class="month-head">
+      <button class="nav-btn" id="prevMonth">‹</button>
+      <div class="month-title" id="monthTitle">-</div>
+      <button class="nav-btn" id="nextMonth">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="month-hint">
+      <span class="dot amber"></span>미완료 남음　
+      <span class="dot seal"></span>모두 완료
+    </div>
+  </div>
+</div>
+
+<div class="add-bar" id="addBar">
+  <div class="add-bar-inner">
+    <input id="taskInput" type="text" placeholder="오늘 할 일을 적어보세요" maxlength="120">
+    <button id="addBtn">기록</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const DOW = ['일','월','화','수','목','금','토'];
+  const MONTH_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  let tasks = [];
+  let currentDate = toISO(new Date());
+  let monthCursor = new Date(); // for month view
+  let storageReady = false;
+
+  function toISO(d){
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function fromISO(iso){
+    const [y,m,d] = iso.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  function addDays(iso, n){
+    const d = fromISO(iso);
+    d.setDate(d.getDate()+n);
+    return toISO(d);
+  }
+  function isPast(a,b){ return a < b; } // iso string compare works for yyyy-mm-dd
+
+  const STORAGE_KEY = 'harujang_tasks';
+  const DB_NAME = 'harujang_db';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'app_data';
+  const TASKS_KEY = 'tasks';
+
+  function openDB(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if(!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function dbGet(key){
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+      tx.oncomplete = () => db.close();
+    });
+  }
+  async function dbSet(key, value){
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(value, key);
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  }
+  function pruneOldTasks(list){
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth()-1);
+    const cutoffISO = toISO(cutoff);
+    return list.filter(t => t.completedDate === null || t.completedDate >= cutoffISO || t.createdDate >= cutoffISO);
+  }
+  async function loadTasks(){
+    try{
+      let saved = await dbGet(TASKS_KEY);
+      // 기존 버전의 localStorage 기록이 있으면 최초 1회 가져옵니다.
+      if(!Array.isArray(saved)){
+        const raw = localStorage.getItem(STORAGE_KEY);
+        saved = raw ? JSON.parse(raw) : [];
+      }
+      tasks = pruneOldTasks(Array.isArray(saved) ? saved : []);
+      await dbSet(TASKS_KEY, tasks);
+    }catch(e){
+      console.error('불러오기 실패', e);
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        tasks = pruneOldTasks(raw ? JSON.parse(raw) : []);
+      }catch(_){ tasks = []; }
+    }
+    storageReady = true;
+  }
+  async function saveTasks(){
+    if(!storageReady) return;
+    tasks = pruneOldTasks(tasks);
+    try{
+      await dbSet(TASKS_KEY, tasks);
+      // 이중 백업: IndexedDB가 주 저장소, localStorage는 보조 백업입니다.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }catch(e){
+      console.error('저장 실패', e);
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }catch(_){}
+    }
+  }
+
+  function uid(){
+    return 't_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+
+  // status of a task on a given day: 'open' | 'done' | null(not visible)
+  function statusOn(task, dayISO){
+    if(task.createdDate > dayISO) return null;
+    if(task.completedDate === null){
+      return 'open';
+    }
+    if(dayISO < task.completedDate) return 'open';
+    if(dayISO === task.completedDate) return 'done';
+    return null;
+  }
+
+  function renderHeaderDate(){
+    const d = fromISO(currentDate);
+    document.getElementById('bigDate').textContent = `${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('dowLabel').textContent = `${DOW[d.getDay()]}요일 · ${d.getFullYear()}`;
+    const jumpWrap = document.getElementById('todayJumpWrap');
+    jumpWrap.style.display = (currentDate === toISO(new Date())) ? 'none' : 'block';
+  }
+
+  function renderLedger(){
+    const ledger = document.getElementById('ledger');
+    const visible = tasks
+      .map(t => ({t, status: statusOn(t, currentDate)}))
+      .filter(x => x.status !== null)
+      .sort((a,b) => a.t.createdDate.localeCompare(b.t.createdDate));
+
+    if(visible.length === 0){
+      ledger.innerHTML = `<div class="empty-state"><span class="glyph">硯</span>오늘 기록된 일정이 없습니다.<br>아래에 새 일정을 적어보세요.</div>`;
+      return;
+    }
+
+    ledger.innerHTML = visible.map(({t,status}) => {
+      const carried = status === 'open' && t.createdDate < currentDate;
+      const carryTag = carried ? `<span class="carry-tag">${fmtShort(t.createdDate)}부터 이월</span>` : '';
+      return `
+        <div class="task-row ${status==='done'?'done':''}" data-id="${t.id}">
+          <button class="stamp-btn ${status==='done'?'done':''}" data-action="toggle" data-id="${t.id}"></button>
+          <div class="task-text-wrap">
+            <div class="task-text">${escapeHtml(t.text)}</div>
+            <div class="task-meta">${carryTag}</div>
+          </div>
+          <button class="del-btn" data-action="delete" data-id="${t.id}">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function fmtShort(iso){
+    const d = fromISO(iso);
+    return `${d.getMonth()+1}.${d.getDate()}`;
+  }
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderMonth(){
+    const y = monthCursor.getFullYear(), m = monthCursor.getMonth();
+    document.getElementById('monthTitle').textContent = `${y}년 ${MONTH_NAMES[m]}`;
+    const grid = document.getElementById('calGrid');
+    const firstDow = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const todayISO = toISO(new Date());
+
+    let html = DOW.map(d => `<div class="cal-dow">${d}</div>`).join('');
+    for(let i=0;i<firstDow;i++){ html += `<div class="cal-cell blank"></div>`; }
+
+    for(let day=1; day<=daysInMonth; day++){
+      const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      let hasOpen=false, hasDoneToday=false;
+      for(const t of tasks){
+        const st = statusOn(t, iso);
+        if(st==='open') hasOpen = true;
+        if(st==='done') hasDoneToday = true;
+      }
+      let dot = '';
+      if(hasOpen) dot = '<div class="dot amber"></div>';
+      else if(hasDoneToday) dot = '<div class="dot seal"></div>';
+      html += `<div class="cal-cell ${iso===todayISO?'today':''}" data-date="${iso}">${day}${dot}</div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  // ---- events ----
+  document.getElementById('prevDay').onclick = () => { currentDate = addDays(currentDate,-1); render(); };
+  document.getElementById('nextDay').onclick = () => { currentDate = addDays(currentDate, 1); render(); };
+  document.getElementById('todayJump').onclick = () => { currentDate = toISO(new Date()); render(); };
+
+  document.getElementById('prevMonth').onclick = () => { monthCursor.setMonth(monthCursor.getMonth()-1); renderMonth(); };
+  document.getElementById('nextMonth').onclick = () => { monthCursor.setMonth(monthCursor.getMonth()+1); renderMonth(); };
+
+  document.getElementById('btnDayView').onclick = () => switchView('day');
+  document.getElementById('btnMonthView').onclick = () => switchView('month');
+
+  function switchView(v){
+    const isDay = v==='day';
+    document.getElementById('dayView').style.display = isDay ? '' : 'none';
+    document.getElementById('monthView').style.display = isDay ? 'none' : '';
+    document.getElementById('addBar').style.display = isDay ? 'flex' : 'none';
+    document.getElementById('btnDayView').classList.toggle('active', isDay);
+    document.getElementById('btnMonthView').classList.toggle('active', !isDay);
+    if(!isDay){ monthCursor = fromISO(currentDate); renderMonth(); }
+  }
+
+  document.getElementById('ledger').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const task = tasks.find(t => t.id === id);
+    if(!task) return;
+
+    if(btn.dataset.action === 'toggle'){
+      const st = statusOn(task, currentDate);
+      task.completedDate = (st === 'done') ? null : currentDate;
+      await saveTasks();
+      renderLedger();
+    } else if(btn.dataset.action === 'delete'){
+      tasks = tasks.filter(t => t.id !== id);
+      await saveTasks();
+      renderLedger();
+    }
+  });
+
+  document.getElementById('calGrid').addEventListener('click', (e) => {
+    const cell = e.target.closest('.cal-cell');
+    if(!cell || !cell.dataset.date) return;
+    currentDate = cell.dataset.date;
+    switchView('day');
+    render();
+  });
+
+  async function addTask(){
+    const input = document.getElementById('taskInput');
+    const text = input.value.trim();
+    if(!text) return;
+    tasks.push({ id: uid(), text, createdDate: currentDate, completedDate: null });
+    input.value = '';
+    await saveTasks();
+    renderLedger();
+  }
+  document.getElementById('addBtn').onclick = addTask;
+  document.getElementById('taskInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') addTask();
+  });
+
+  function render(){
+    renderHeaderDate();
+    renderLedger();
+  }
+
+  (async function init(){
+    await requestPersistentStorage();
+    await loadTasks();
+    render();
+    initInstallBanner();
+    registerServiceWorker();
+  })();
+
+  async function requestPersistentStorage(){
+    try{
+      if(navigator.storage && navigator.storage.persist){
+        const already = navigator.storage.persisted ? await navigator.storage.persisted() : false;
+        if(!already){
+          await navigator.storage.persist();
+        }
+      }
+    }catch(e){
+      console.error('영구 저장 요청 실패', e);
+    }
+  }
+
+  function registerServiceWorker(){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+
+  function initInstallBanner(){
+    const banner = document.getElementById('installBanner');
+    const msg = document.getElementById('installMsg');
+    const installBtn = document.getElementById('installBtn');
+    const closeBtn = document.getElementById('installClose');
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if(isStandalone) return; // 이미 설치된 상태면 배너 숨김
+
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    let deferredPrompt = null;
+
+    closeBtn.onclick = () => { banner.style.display = 'none'; };
+
+    if(isIOS){
+      msg.textContent = 'Safari 하단의 공유 아이콘( ⬆︎ )을 누른 뒤 "홈 화면에 추가"를 선택하면 앱처럼 설치돼요.';
+      installBtn.style.display = 'none';
+      banner.style.display = 'flex';
+    } else {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        msg.textContent = '이 기기에 설치하면 바로가기 아이콘으로 더 빠르게 열 수 있어요.';
+        installBtn.style.display = 'inline-block';
+        banner.style.display = 'flex';
+      });
+      window.addEventListener('appinstalled', () => {
+        banner.style.display = 'none';
+        deferredPrompt = null;
+      });
+      installBtn.onclick = async () => {
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        banner.style.display = 'none';
+      };
+    }
+  }
+})();
+</script>
+</body>
+</html>
